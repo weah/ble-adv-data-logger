@@ -49,7 +49,7 @@ public class ScannerFragment extends ListFragment {
     /**
      * Stops scanning after 5 seconds.
      */
-    private static final long SCAN_PERIOD = 5000;
+    private static final long SCAN_PERIOD = 20000;
 
     private BluetoothAdapter mBluetoothAdapter;
 
@@ -204,6 +204,7 @@ public class ScannerFragment extends ListFragment {
         @Override
         public void onBatchScanResults(List<ScanResult> results) {
             super.onBatchScanResults(results);
+            Log.d(TAG, "onBatchScanResults");
 
             for (ScanResult result : results) {
                 mAdapter.add(result);
@@ -214,6 +215,7 @@ public class ScannerFragment extends ListFragment {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             super.onScanResult(callbackType, result);
+            Log.d(TAG, "onScanResult");
 
             mAdapter.add(result);
             mAdapter.notifyDataSetChanged();
@@ -222,6 +224,7 @@ public class ScannerFragment extends ListFragment {
         @Override
         public void onScanFailed(int errorCode) {
             super.onScanFailed(errorCode);
+            Log.d(TAG, "onScanFailed");
             Toast.makeText(getActivity(), "Scan failed with error: " + errorCode, Toast.LENGTH_LONG)
                     .show();
         }
