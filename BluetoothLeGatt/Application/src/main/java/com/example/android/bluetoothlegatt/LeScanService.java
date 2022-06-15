@@ -16,7 +16,7 @@ public class LeScanService extends Service {
     private boolean isScanning;
 
 
-    public class LocalBinder extends Binder {
+    public class ThisBinder extends Binder {
         LeScanService getService() {
             return LeScanService.this;
         }
@@ -36,7 +36,8 @@ public class LeScanService extends Service {
         return super.onUnbind(intent);
     }
 
-    private final IBinder mBinder = new LeScanService.LocalBinder();
+    private final IBinder mBinder = new ThisBinder();
+
 
     public boolean initialize() {
         isScanning = false;

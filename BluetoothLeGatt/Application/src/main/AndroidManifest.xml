@@ -47,8 +47,8 @@
         </activity>
         <activity android:name=".DeviceControlActivity"/>
         <activity android:name=".RecordingActivity"/>
-        <service android:name=".LeScanService"      android:enabled="true"/>
         <service android:name=".BluetoothLeService" android:enabled="true"/>
+        <service android:name=".LeScanService"      android:enabled="true"/>
     </application>
 
 </manifest>
