@@ -68,6 +68,7 @@ public class DeviceScanActivity extends ListActivity {
                 //Log.e(TAG, "Unable to initialize Bluetooth");
                 finish();
             }
+            scanLeDevice(true);
         }
 
         @Override
@@ -90,7 +91,7 @@ public class DeviceScanActivity extends ListActivity {
         }
 
         Intent leScanServiceIntent = new Intent(this, LeScanService.class);
-        getApplicationContext().bindService(leScanServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
+        getApplicationContext().bindService(leScanServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
     @Override
@@ -139,7 +140,7 @@ public class DeviceScanActivity extends ListActivity {
         // Initializes list view adapter.
         mLeDeviceListAdapter = new LeDeviceListAdapter();
         setListAdapter(mLeDeviceListAdapter);
-        scanLeDevice(true);
+        //scanLeDevice(true);
     }
 
     @Override
@@ -178,22 +179,26 @@ public class DeviceScanActivity extends ListActivity {
 
     private void scanLeDevice(final boolean enable) {
         if (enable) {
-            // Stops scanning after a pre-defined scan period.
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    mScanning = false;
-                    mLeScanService.stopScan(mLeScanCallback);
+            if (mLeScanService != null) {
+                // Stops scanning after a pre-defined scan period.
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mScanning = false;
+                        mLeScanService.stopScan(mLeScanCallback);
 //                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
-                    invalidateOptionsMenu();
-                }
-            }, SCAN_PERIOD);
+                        invalidateOptionsMenu();
+                    }
+                }, SCAN_PERIOD);
 
-            mScanning = true;
-            mLeScanService.startScan(mLeScanCallback);
+                mScanning = true;
+                mLeScanService.startScan(mLeScanCallback);
+            }
         } else {
-            mScanning = false;
-            mLeScanService.stopScan(mLeScanCallback);
+            if (mLeScanService != null) {
+                mScanning = false;
+                mLeScanService.stopScan(mLeScanCallback);
+            }
         }
         invalidateOptionsMenu();
     }
