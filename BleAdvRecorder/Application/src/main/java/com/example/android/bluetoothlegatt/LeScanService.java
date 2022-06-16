@@ -1,4 +1,4 @@
-package com.example.android.bluetoothlegatt;
+package com.example.android.bleadvrecorder;
 
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
