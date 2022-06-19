@@ -17,27 +17,39 @@
 package com.example.android.bleadvrecorder;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.IBinder;
+import android.provider.DocumentsContract;
+import android.text.format.DateFormat;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.ExpandableListView;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 
+import java.io.File;
+import java.security.Timestamp;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * For given BLE devices, this Activity provides the user interface to record advertise and
@@ -56,6 +68,8 @@ public class RecordingActivity extends Activity {
     private TextView mDataField;
     private String mDeviceName;
     private String mDeviceAddress;
+    private String mSessionName;
+    private String mRecFileName;
 //    private ExpandableListView mGattServicesList;
 //    private BluetoothLeService mBluetoothLeService;
 //    private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics =
@@ -195,6 +209,21 @@ public class RecordingActivity extends Activity {
         getActionBar().setDisplayHomeAsUpEnabled(true);
 //        Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
 //        bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
+
+        // Pop up asking the user to enter a session name
+        final EditText sessionName = new EditText(this);
+        sessionName.setHint("IndoorMeetingRoomChur");
+        new AlertDialog.Builder(this)
+                .setTitle("Session name")
+                .setMessage("Enter the session name")
+                .setView(sessionName)
+                .setPositiveButton("Start session", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        mSessionName = sessionName.getText().toString();
+                        startRecSession(mSessionName);
+                    }
+                })
+                .show();
     }
     @Override
     protected void onResume() {
@@ -218,6 +247,50 @@ public class RecordingActivity extends Activity {
 //        unbindService(mServiceConnection);
 //        mBluetoothLeService = null;
     }
+
+    private String getTimestampAsString() {
+        long time = System.currentTimeMillis();
+        Calendar cal = Calendar.getInstance(Locale.ENGLISH);
+        cal.setTimeInMillis(time);
+        return DateFormat.format("yyyy-MM-dd-mm-ss", cal).toString();
+    }
+
+    // Checks if a volume containing external storage is available
+    // for read and write.
+    private boolean isExternalStorageWritable() {
+        return Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
+    }
+
+    // Checks if a volume containing external storage is available to at least read.
+    private boolean isExternalStorageReadable() {
+        return Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED) ||
+                Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED_READ_ONLY);
+    }
+
+
+    private void startRecSession(String sessionName) {
+        // Create and open log file
+        String recFileName = getTimestampAsString() + "-" + sessionName;
+        //File recFile = new File(getExternalFilesDir(null), recFileName);
+        createFile(sessionName);
+
+        // Start LE scan
+    }
+
+    private void createFile(String sessionName) {
+        Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("application/txt");
+        mRecFileName = getTimestampAsString() + "-" + sessionName + ".txt";
+        intent.putExtra(Intent.EXTRA_TITLE, mRecFileName);
+
+        // Optionally, specify a URI for the directory that should be opened in
+        // the system file picker when your app creates the document.
+        //intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri);
+
+        startActivityForResult(intent, 1);
+    }
+
 
 //    @Override
 //    public boolean onCreateOptionsMenu(Menu menu) {
