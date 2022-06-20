@@ -18,6 +18,8 @@ package com.example.android.bleadvrecorder;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.content.BroadcastReceiver;
@@ -30,7 +32,9 @@ import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.ParcelFileDescriptor;
 import android.provider.DocumentsContract;
 import android.text.format.DateFormat;
 import android.util.Log;
@@ -44,6 +48,10 @@ import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.security.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -70,6 +78,11 @@ public class RecordingActivity extends Activity {
     private String mDeviceAddress;
     private String mSessionName;
     private String mRecFileName;
+    private Uri mRecFileNameUri;
+    private FileOutputStream mFileOutputStream;
+    private ParcelFileDescriptor mParcelFileDescriptor;
+    private LeScanService mLeScanService;
+    private Handler mHandler;
 //    private ExpandableListView mGattServicesList;
 //    private BluetoothLeService mBluetoothLeService;
 //    private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics =
@@ -79,6 +92,25 @@ public class RecordingActivity extends Activity {
 
     private final String LIST_NAME = "NAME";
     private final String LIST_UUID = "UUID";
+
+    // Code to manage Service lifecycle.
+    private final ServiceConnection mServiceConnection = new ServiceConnection() {
+
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder service) {
+            mLeScanService = ((LeScanService.ThisBinder) service).getService();
+            if (!mLeScanService.initialize()) {
+                //Log.e(TAG, "Unable to initialize Bluetooth");
+                finish();
+            }
+            scanLeDevice(true);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            mLeScanService = null;
+        }
+    };
 
 //    // Code to manage Service lifecycle.
 //    private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -193,6 +225,7 @@ public class RecordingActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.adv_recording);
+        mHandler = new Handler();
 
         final Intent intent = getIntent();
         mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
@@ -209,6 +242,10 @@ public class RecordingActivity extends Activity {
         getActionBar().setDisplayHomeAsUpEnabled(true);
 //        Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
 //        bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
+
+        // Bind LE Scan Service
+        Intent leScanServiceIntent = new Intent(this, LeScanService.class);
+        getApplicationContext().bindService(leScanServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
 
         // Pop up asking the user to enter a session name
         final EditText sessionName = new EditText(this);
@@ -244,6 +281,7 @@ public class RecordingActivity extends Activity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        closeFile();
 //        unbindService(mServiceConnection);
 //        mBluetoothLeService = null;
     }
@@ -255,26 +293,46 @@ public class RecordingActivity extends Activity {
         return DateFormat.format("yyyy-MM-dd-mm-ss", cal).toString();
     }
 
-    // Checks if a volume containing external storage is available
-    // for read and write.
-    private boolean isExternalStorageWritable() {
-        return Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED);
-    }
-
-    // Checks if a volume containing external storage is available to at least read.
-    private boolean isExternalStorageReadable() {
-        return Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED) ||
-                Environment.getExternalStorageState().equals(Environment.MEDIA_MOUNTED_READ_ONLY);
-    }
-
-
     private void startRecSession(String sessionName) {
         // Create and open log file
         String recFileName = getTimestampAsString() + "-" + sessionName;
         //File recFile = new File(getExternalFilesDir(null), recFileName);
         createFile(sessionName);
 
-        // Start LE scan
+    }
+
+    // Request code for creating the file where ADV will be recorded
+    private static final int CREATE_REC_FILE = 1;
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode,
+                                 Intent resultData) {
+        if (requestCode == CREATE_REC_FILE
+            && resultCode == Activity.RESULT_OK) {
+            // The result data contains a URI for the document or directory that
+            // the user selected.
+            mRecFileNameUri = null;
+            if (resultData != null) {
+                mRecFileNameUri = resultData.getData();
+                // Perform operations on the document using its URI.
+
+                try {
+                    // Open file or editing
+                    mParcelFileDescriptor = getApplicationContext().getContentResolver().
+                            openFileDescriptor(mRecFileNameUri, "w");
+                    mFileOutputStream = new FileOutputStream(mParcelFileDescriptor.getFileDescriptor());
+                    mFileOutputStream.write(("Session started at " + System.currentTimeMillis() +
+                            "\n").getBytes());
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                // Start LE scan
+                scanLeDevice(true);
+            }
+        }
     }
 
     private void createFile(String sessionName) {
@@ -288,9 +346,66 @@ public class RecordingActivity extends Activity {
         // the system file picker when your app creates the document.
         //intent.putExtra(DocumentsContract.EXTRA_INITIAL_URI, pickerInitialUri);
 
-        startActivityForResult(intent, 1);
+        startActivityForResult(intent, CREATE_REC_FILE);
+
     }
 
+    private void writeToFile(String data) {
+
+    }
+
+    private void closeFile() {
+        try {
+            // Let the document provider know you're done by closing the stream.
+            mFileOutputStream.close();
+            mParcelFileDescriptor.close();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void scanLeDevice(final boolean enable) {
+        if (enable) {
+            if (mLeScanService != null) {
+                // Stops scanning after a pre-defined scan period.
+                mHandler.postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        mLeScanService.stopScan(mLeScanCallback);
+//                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
+                        invalidateOptionsMenu();
+                    }
+                }, 10000);
+
+                mLeScanService.startScan(mLeScanCallback);
+            }
+        } else {
+            if (mLeScanService != null) {
+                mLeScanService.stopScan(mLeScanCallback);
+            }
+        }
+        invalidateOptionsMenu();
+    }
+
+    // Device scan callback.
+    private BluetoothAdapter.LeScanCallback mLeScanCallback =
+            new BluetoothAdapter.LeScanCallback() {
+
+                @Override
+                public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                                String str = device.getAddress() + " " + String.valueOf(rssi) + "dBm\n";
+                                writeToFile(str);
+//                            mLeDeviceListAdapter.addDevice(device, String.valueOf(rssi));
+//                            mLeDeviceListAdapter.notifyDataSetChanged();
+                        }
+                    });
+                }
+            };
 
 //    @Override
 //    public boolean onCreateOptionsMenu(Menu menu) {
