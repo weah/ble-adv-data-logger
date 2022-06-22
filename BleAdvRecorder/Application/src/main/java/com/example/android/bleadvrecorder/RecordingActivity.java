@@ -22,6 +22,8 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
+import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanResult;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
@@ -30,12 +32,14 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
 import android.provider.DocumentsContract;
+import android.support.annotation.RequiresApi;
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -412,6 +416,41 @@ public class RecordingActivity extends Activity {
                     });
                 }
             };
+
+    /**
+     * Custom ScanCallback object
+     */
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private class SampleScanCallback extends ScanCallback {
+
+        @Override
+        public void onBatchScanResults(List<ScanResult> results) {
+            super.onBatchScanResults(results);
+            Log.d(TAG, "onBatchScanResults");
+
+            for (ScanResult result : results) {
+                //mAdapter.add(result);
+            }
+            //mAdapter.notifyDataSetChanged();
+        }
+
+        @Override
+        public void onScanResult(int callbackType, ScanResult result) {
+            super.onScanResult(callbackType, result);
+            Log.d(TAG, "onScanResult");
+
+            //mAdapter.add(result);
+            //mAdapter.notifyDataSetChanged();
+        }
+
+        @Override
+        public void onScanFailed(int errorCode) {
+            super.onScanFailed(errorCode);
+            Log.d(TAG, "onScanFailed");
+//            Toast.makeText(getActivity(), "Scan failed with error: " + errorCode, Toast.LENGTH_LONG)
+//                    .show();
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
