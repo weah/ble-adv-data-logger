@@ -103,7 +103,6 @@ public class RecordingActivity extends Activity {
                 //Log.e(TAG, "Unable to initialize Bluetooth");
                 finish();
             }
-            scanLeDevice(true);
         }
 
         @Override
@@ -290,7 +289,7 @@ public class RecordingActivity extends Activity {
         long time = System.currentTimeMillis();
         Calendar cal = Calendar.getInstance(Locale.ENGLISH);
         cal.setTimeInMillis(time);
-        return DateFormat.format("yyyy-MM-dd-mm-ss", cal).toString();
+        return DateFormat.format("yyyy-MM-dd-hh-mm-ss", cal).toString();
     }
 
     private void startRecSession(String sessionName) {
@@ -321,8 +320,7 @@ public class RecordingActivity extends Activity {
                     mParcelFileDescriptor = getApplicationContext().getContentResolver().
                             openFileDescriptor(mRecFileNameUri, "w");
                     mFileOutputStream = new FileOutputStream(mParcelFileDescriptor.getFileDescriptor());
-                    mFileOutputStream.write(("Session started at " + System.currentTimeMillis() +
-                            "\n").getBytes());
+                    writeToFile("Session started at " + System.currentTimeMillis() + "\n");
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 } catch (IOException e) {
@@ -350,7 +348,14 @@ public class RecordingActivity extends Activity {
 
     }
 
-    private void writeToFile(String data) {
+    private void writeToFile(String str) {
+        try {
+            mFileOutputStream.write(str.getBytes());
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -378,11 +383,12 @@ public class RecordingActivity extends Activity {
                         invalidateOptionsMenu();
                     }
                 }, 10000);
-
+                Log.d(TAG, "scanLeDevice() -> startScan");
                 mLeScanService.startScan(mLeScanCallback);
             }
         } else {
             if (mLeScanService != null) {
+                Log.d(TAG, "scanLeDevice() -> stopScan");
                 mLeScanService.stopScan(mLeScanCallback);
             }
         }
@@ -407,19 +413,36 @@ public class RecordingActivity extends Activity {
                 }
             };
 
-//    @Override
-//    public boolean onCreateOptionsMenu(Menu menu) {
-//        getMenuInflater().inflate(R.menu.gatt_services, menu);
-//        if (mConnected) {
-//            menu.findItem(R.id.menu_connect).setVisible(false);
-//            menu.findItem(R.id.menu_disconnect).setVisible(true);
-//        } else {
-//            menu.findItem(R.id.menu_connect).setVisible(true);
-//            menu.findItem(R.id.menu_disconnect).setVisible(false);
-//        }
-//        return true;
-//    }
-//
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.main, menu);
+        if ((mLeScanService != null) && mLeScanService.isScanning()) {
+            menu.findItem(R.id.menu_stop).setVisible(true);
+            menu.findItem(R.id.menu_scan).setVisible(false);
+            menu.findItem(R.id.menu_refresh).setActionView(
+                    R.layout.actionbar_indeterminate_progress);
+        } else {
+            menu.findItem(R.id.menu_stop).setVisible(false);
+            menu.findItem(R.id.menu_scan).setVisible(true);
+            menu.findItem(R.id.menu_refresh).setActionView(null);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.menu_scan:
+                //mLeDeviceListAdapter.clear();
+                scanLeDevice(true);
+                break;
+            case R.id.menu_stop:
+                scanLeDevice(false);
+                break;
+        }
+        return true;
+    }
+
 //    @Override
 //    public boolean onOptionsItemSelected(MenuItem item) {
 //        switch(item.getItemId()) {
