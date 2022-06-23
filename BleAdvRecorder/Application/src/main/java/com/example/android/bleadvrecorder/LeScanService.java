@@ -12,8 +12,7 @@ import android.content.Intent;
 import android.os.Binder;
 import android.os.Build;
 import android.os.IBinder;
-import android.support.annotation.RequiresApi;
-import android.widget.Toast;
+import androidx.annotation.RequiresApi;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -66,41 +65,45 @@ public class LeScanService extends Service {
         return true;
     }
 
-//    /**
-//     * Return a List of {@link ScanFilter} objects to filter by Service UUID.
-//     */
-//    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-//    private List<ScanFilter> buildScanFilters() {
-//        List<ScanFilter> scanFilters = new ArrayList<>();
-//
-//        ScanFilter.Builder builder = new ScanFilter.Builder();
-//        // Comment out the below line to see all BLE devices around you
-//        builder.setServiceUuid(Constants.Service_UUID);
-//        //builder.setDeviceAddress();
-//        scanFilters.add(builder.build());
-//
-//        return scanFilters;
-//    }
-//
-//    /**
-//     * Return a {@link ScanSettings} object set to use low power (to preserve battery life).
-//     */
-//    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-//    private ScanSettings buildScanSettings() {
-//        ScanSettings.Builder builder = new ScanSettings.Builder();
-//        builder.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY);
-//        return builder.build();
-//    }
+    /**
+     * Return a List of {@link ScanFilter} objects to filter by Service UUID.
+     */
+    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+    private List<ScanFilter> buildScanFilters(String deviceAddress) {
+        List<ScanFilter> scanFilters = new ArrayList<>();
 
-    public void startScan(BluetoothAdapter.LeScanCallback scanCallback) {
-        mBluetoothAdapter.startLeScan(scanCallback);
-        isScanning = true;
+        ScanFilter.Builder builder = new ScanFilter.Builder();
+        // Comment out the below line to see all BLE devices around you
+        //builder.setServiceUuid(Constants.Service_UUID);
+        builder.setDeviceAddress(deviceAddress);
+        scanFilters.add(builder.build());
+
+        return scanFilters;
     }
 
-//    public void startFilteredScan(ScanCallback scanCallback) {
-//        mBluetoothLeScanner.startScan(scanCallback);
-//        isScanning = true;
-//    }
+    /**
+     * Return a {@link ScanSettings} object set to use low power (to preserve battery life).
+     */
+    private ScanSettings buildScanSettings() {
+        ScanSettings.Builder builder = new ScanSettings.Builder();
+        builder.setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY);
+        return builder.build();
+    }
+
+    public void startFilteredScan(String deviceAddress, ScanCallback scanCallback) {
+        isScanning = true;
+        mBluetoothLeScanner.startScan(buildScanFilters(deviceAddress), buildScanSettings(), scanCallback);
+    }
+
+    public void stopFilteredScan(ScanCallback scanCallback) {
+        mBluetoothLeScanner.stopScan(scanCallback);
+        isScanning = false;
+    }
+
+    public void startScan(BluetoothAdapter.LeScanCallback scanCallback) {
+        isScanning = true;
+        mBluetoothAdapter.startLeScan(scanCallback);
+    }
 
     public void stopScan(BluetoothAdapter.LeScanCallback scanCallback) {
         mBluetoothAdapter.stopLeScan(scanCallback);

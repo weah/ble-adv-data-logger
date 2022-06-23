@@ -20,46 +20,32 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothGattCharacteristic;
-import android.bluetooth.BluetoothGattService;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
-import android.provider.DocumentsContract;
-import android.support.annotation.RequiresApi;
+
+import androidx.annotation.RequiresApi;
 import android.text.format.DateFormat;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.widget.EditText;
-import android.widget.ExpandableListView;
-import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.security.Timestamp;
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 
@@ -87,6 +73,8 @@ public class RecordingActivity extends Activity {
     private ParcelFileDescriptor mParcelFileDescriptor;
     private LeScanService mLeScanService;
     private Handler mHandler;
+    private ScanCallback mFilteredScanCallback;
+
 //    private ExpandableListView mGattServicesList;
 //    private BluetoothLeService mBluetoothLeService;
 //    private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics =
@@ -378,49 +366,53 @@ public class RecordingActivity extends Activity {
     private void scanLeDevice(final boolean enable) {
         if (enable) {
             if (mLeScanService != null) {
-                // Stops scanning after a pre-defined scan period.
-                mHandler.postDelayed(new Runnable() {
-                    @Override
-                    public void run() {
-                        mLeScanService.stopScan(mLeScanCallback);
-//                    mBluetoothAdapter.stopLeScan(mLeScanCallback);
-                        invalidateOptionsMenu();
-                    }
-                }, 10000);
-                Log.d(TAG, "scanLeDevice() -> startScan");
-                mLeScanService.startScan(mLeScanCallback);
+                if (mFilteredScanCallback == null) {
+
+                    // Stops scanning after a pre-defined scan period.
+                    mHandler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            mLeScanService.stopFilteredScan(mFilteredScanCallback);
+                            mFilteredScanCallback = null;
+                            invalidateOptionsMenu();
+                        }
+                    }, 10000);
+                    Log.d(TAG, "scanLeDevice() -> startScan");
+                    mFilteredScanCallback = new SampleScanCallback();
+                    mLeScanService.startFilteredScan(mDeviceAddress, mFilteredScanCallback);
+                    //mLeScanService.startScan(mLeScanCallback);
+                }
             }
         } else {
             if (mLeScanService != null) {
                 Log.d(TAG, "scanLeDevice() -> stopScan");
-                mLeScanService.stopScan(mLeScanCallback);
+                //mLeScanService.stopScan(mLeScanCallback);
+                mLeScanService.stopFilteredScan(mFilteredScanCallback);
+                mFilteredScanCallback = null;
             }
         }
         invalidateOptionsMenu();
     }
 
     // Device scan callback.
-    private BluetoothAdapter.LeScanCallback mLeScanCallback =
-            new BluetoothAdapter.LeScanCallback() {
+//    private BluetoothAdapter.LeScanCallback mLeScanCallback =
+//            new BluetoothAdapter.LeScanCallback() {
+//
+//                @Override
+//                public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
+//                    runOnUiThread(new Runnable() {
+//                        @Override
+//                        public void run() {
+//                                String str = device.getAddress() + " " + String.valueOf(rssi) + "dBm\n";
+//                                writeToFile(str);
+////                            mLeDeviceListAdapter.addDevice(device, String.valueOf(rssi));
+////                            mLeDeviceListAdapter.notifyDataSetChanged();
+//                        }
+//                    });
+//                }
+//            };
 
-                @Override
-                public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                                String str = device.getAddress() + " " + String.valueOf(rssi) + "dBm\n";
-                                writeToFile(str);
-//                            mLeDeviceListAdapter.addDevice(device, String.valueOf(rssi));
-//                            mLeDeviceListAdapter.notifyDataSetChanged();
-                        }
-                    });
-                }
-            };
-
-    /**
-     * Custom ScanCallback object
-     */
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
+     // ScanCallback for filtered scan
     private class SampleScanCallback extends ScanCallback {
 
         @Override
