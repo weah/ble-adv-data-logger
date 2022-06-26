@@ -421,7 +421,7 @@ public class RecordingActivity extends Activity {
             Log.d(TAG, "onScanResult");
             BluetoothDevice device = result.getDevice();
 
-            int rssi = result.getRssi();
+            String rssiStr = String.valueOf(result.getRssi());
             byte[] advData = result.getScanRecord().getBytes();
             String advDataHexStr = toHexadecimal(advData);
 
@@ -429,9 +429,9 @@ public class RecordingActivity extends Activity {
 //            ScanRecord scanRec = result.getScanRecord();
 //            byte data[] = scanRec.getBytes();
             String str = device.getAddress() + ";" + String.valueOf(time) +
-                    ";" + advDataHexStr + ";" + String.valueOf(result.getRssi()) + "\n";
+                    ";" + advDataHexStr + ";" + rssiStr + "\n";
             writeToFile(str);
-            //((TextView) findViewById(R.id.rec_device_address)).setText(mDeviceAddress);
+            ((TextView) findViewById(R.id.dev_rssi)).setText(rssiStr);
 
 
             //mAdapter.add(result);
