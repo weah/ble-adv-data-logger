@@ -21,6 +21,7 @@ import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.ScanCallback;
+import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.content.ComponentName;
 import android.content.Context;
@@ -45,6 +46,7 @@ import android.widget.TextView;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -281,13 +283,11 @@ public class RecordingActivity extends Activity {
         long time = System.currentTimeMillis();
         Calendar cal = Calendar.getInstance(Locale.ENGLISH);
         cal.setTimeInMillis(time);
-        return DateFormat.format("yyyy-MM-dd-hh-mm-ss", cal).toString();
+        return DateFormat.format("yyyy-MM-dd-HH-mm-ss", cal).toString();
     }
 
     private void startRecSession(String sessionName) {
         // Create and open log file
-        String recFileName = getTimestampAsString() + "-" + sessionName;
-        //File recFile = new File(getExternalFilesDir(null), recFileName);
         createFile(sessionName);
 
     }
@@ -312,10 +312,8 @@ public class RecordingActivity extends Activity {
                     mParcelFileDescriptor = getApplicationContext().getContentResolver().
                             openFileDescriptor(mRecFileNameUri, "w");
                     mFileOutputStream = new FileOutputStream(mParcelFileDescriptor.getFileDescriptor());
-                    writeToFile("Session started at " + System.currentTimeMillis() + "\n");
+                    writeToFile("Session started at " + getTimestampAsString() + "\n\n");
                 } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
                     e.printStackTrace();
                 }
 
@@ -380,13 +378,11 @@ public class RecordingActivity extends Activity {
                     Log.d(TAG, "scanLeDevice() -> startScan");
                     mFilteredScanCallback = new SampleScanCallback();
                     mLeScanService.startFilteredScan(mDeviceAddress, mFilteredScanCallback);
-                    //mLeScanService.startScan(mLeScanCallback);
                 }
             }
         } else {
             if (mLeScanService != null) {
                 Log.d(TAG, "scanLeDevice() -> stopScan");
-                //mLeScanService.stopScan(mLeScanCallback);
                 mLeScanService.stopFilteredScan(mFilteredScanCallback);
                 mFilteredScanCallback = null;
             }
@@ -394,26 +390,19 @@ public class RecordingActivity extends Activity {
         invalidateOptionsMenu();
     }
 
-    // Device scan callback.
-//    private BluetoothAdapter.LeScanCallback mLeScanCallback =
-//            new BluetoothAdapter.LeScanCallback() {
-//
-//                @Override
-//                public void onLeScan(final BluetoothDevice device, final int rssi, byte[] scanRecord) {
-//                    runOnUiThread(new Runnable() {
-//                        @Override
-//                        public void run() {
-//                                String str = device.getAddress() + " " + String.valueOf(rssi) + "dBm\n";
-//                                writeToFile(str);
-////                            mLeDeviceListAdapter.addDevice(device, String.valueOf(rssi));
-////                            mLeDeviceListAdapter.notifyDataSetChanged();
-//                        }
-//                    });
-//                }
-//            };
-
      // ScanCallback for filtered scan
     private class SampleScanCallback extends ScanCallback {
+
+        // Convert a byte array in a hex-string
+         private String toHexadecimal(byte[] digest){
+             String hash = "";
+             for(byte aux : digest) {
+                 int b = aux & 0xff;
+                 if (Integer.toHexString(b).length() == 1) hash += "0";
+                 hash += Integer.toHexString(b);
+             }
+             return hash;
+         }
 
         @Override
         public void onBatchScanResults(List<ScanResult> results) {
@@ -430,6 +419,20 @@ public class RecordingActivity extends Activity {
         public void onScanResult(int callbackType, ScanResult result) {
             super.onScanResult(callbackType, result);
             Log.d(TAG, "onScanResult");
+            BluetoothDevice device = result.getDevice();
+
+            int rssi = result.getRssi();
+            byte[] advData = result.getScanRecord().getBytes();
+            String advDataHexStr = toHexadecimal(advData);
+
+            long time = System.currentTimeMillis();
+//            ScanRecord scanRec = result.getScanRecord();
+//            byte data[] = scanRec.getBytes();
+            String str = device.getAddress() + ";" + String.valueOf(time) +
+                    ";" + advDataHexStr + ";" + String.valueOf(result.getRssi()) + "\n";
+            writeToFile(str);
+            //((TextView) findViewById(R.id.rec_device_address)).setText(mDeviceAddress);
+
 
             //mAdapter.add(result);
             //mAdapter.notifyDataSetChanged();
