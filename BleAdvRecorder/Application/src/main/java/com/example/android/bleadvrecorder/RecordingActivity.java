@@ -76,6 +76,8 @@ public class RecordingActivity extends Activity {
     private LeScanService mLeScanService;
     private Handler mHandler;
     private ScanCallback mFilteredScanCallback;
+    private long mTimeOfLastAdvReceived;
+    private long mNofReceivedAdv;
 
 //    private ExpandableListView mGattServicesList;
 //    private BluetoothLeService mBluetoothLeService;
@@ -376,6 +378,8 @@ public class RecordingActivity extends Activity {
                         }
                     }, 10000);
                     Log.d(TAG, "scanLeDevice() -> startScan");
+                    mNofReceivedAdv = 0;
+                    mTimeOfLastAdvReceived = 0;
                     mFilteredScanCallback = new SampleScanCallback();
                     mLeScanService.startFilteredScan(mDeviceAddress, mFilteredScanCallback);
                 }
@@ -431,8 +435,17 @@ public class RecordingActivity extends Activity {
             String str = device.getAddress() + ";" + String.valueOf(time) +
                     ";" + advDataHexStr + ";" + rssiStr + "\n";
             writeToFile(str);
-            ((TextView) findViewById(R.id.dev_rssi)).setText(rssiStr);
+            ((TextView) findViewById(R.id.dev_rssi)).setText(rssiStr + "dBm");
+            long advInterval = time - mTimeOfLastAdvReceived;
+            if (advInterval < 0) {
+                ((TextView) findViewById(R.id.adv_interval)).setText("-");
+            } else {
+                ((TextView) findViewById(R.id.adv_interval)).setText(String.valueOf(advInterval) + "ms");
+            }
+            mTimeOfLastAdvReceived = time;
 
+            mNofReceivedAdv++;
+            ((TextView) findViewById(R.id.nof_rx_adv)).setText(String.valueOf(mNofReceivedAdv));
 
             //mAdapter.add(result);
             //mAdapter.notifyDataSetChanged();
