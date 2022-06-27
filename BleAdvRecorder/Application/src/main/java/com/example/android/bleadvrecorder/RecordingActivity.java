@@ -36,6 +36,8 @@ import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
 
 import androidx.annotation.RequiresApi;
+import androidx.fragment.app.FragmentActivity;
+
 import android.text.format.DateFormat;
 import android.util.Log;
 import android.view.Menu;
@@ -58,7 +60,7 @@ import java.util.Locale;
  * communicates with {@code BluetoothLeService}, which in turn interacts with the
  * Bluetooth LE API.
  */
-public class RecordingActivity extends Activity {
+public class RecordingActivity extends FragmentActivity {
     private final static String TAG = RecordingActivity.class.getSimpleName();
 
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
@@ -343,8 +345,6 @@ public class RecordingActivity extends Activity {
     private void writeToFile(String str) {
         try {
             mFileOutputStream.write(str.getBytes());
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -356,8 +356,6 @@ public class RecordingActivity extends Activity {
             // Let the document provider know you're done by closing the stream.
             mFileOutputStream.close();
             mParcelFileDescriptor.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -397,7 +395,7 @@ public class RecordingActivity extends Activity {
      // ScanCallback for filtered scan
     private class SampleScanCallback extends ScanCallback {
 
-        // Convert a byte array in a hex-string
+        // Convert a byte array into a hex-string
          private String toHexadecimal(byte[] digest){
              String hash = "";
              for(byte aux : digest) {
