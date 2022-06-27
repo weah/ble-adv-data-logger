@@ -247,17 +247,17 @@ public class RecordingActivity extends FragmentActivity {
         // Pop up asking the user to enter a session name
         final EditText sessionName = new EditText(this);
         sessionName.setHint("IndoorMeetingRoomChur");
-        new AlertDialog.Builder(this)
-                .setTitle("Session name")
-                .setMessage("Enter the session name")
-                .setView(sessionName)
-                .setPositiveButton("Start session", new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int whichButton) {
-                        mSessionName = sessionName.getText().toString();
-                        startRecSession(mSessionName);
-                    }
-                })
-                .show();
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Session name");
+        builder.setMessage("Enter the session name");
+        builder.setView(sessionName);
+        builder.setPositiveButton("Start session", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int whichButton) {
+                mSessionName = sessionName.getText().toString();
+                startRecSession(mSessionName);
+            }
+        });
+        builder.show();
     }
     @Override
     protected void onResume() {
@@ -293,7 +293,6 @@ public class RecordingActivity extends FragmentActivity {
     private void startRecSession(String sessionName) {
         // Create and open log file
         createFile(sessionName);
-
     }
 
     // Request code for creating the file where ADV will be recorded
@@ -348,7 +347,6 @@ public class RecordingActivity extends FragmentActivity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-
     }
 
     private void closeFile() {
@@ -484,25 +482,13 @@ public class RecordingActivity extends FragmentActivity {
             case R.id.menu_stop:
                 scanLeDevice(false);
                 break;
+            case android.R.id.home:
+                onBackPressed();
+                return true;
         }
         return true;
     }
 
-//    @Override
-//    public boolean onOptionsItemSelected(MenuItem item) {
-//        switch(item.getItemId()) {
-//            case R.id.menu_connect:
-//                mBluetoothLeService.connect(mDeviceAddress);
-//                return true;
-//            case R.id.menu_disconnect:
-//                mBluetoothLeService.disconnect();
-//                return true;
-//            case android.R.id.home:
-//                onBackPressed();
-//                return true;
-//        }
-//        return super.onOptionsItemSelected(item);
-//    }
 //
 //    private void updateConnectionState(final int resourceId) {
 //        runOnUiThread(new Runnable() {
