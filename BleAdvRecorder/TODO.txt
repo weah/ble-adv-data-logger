@@ -1,0 +1,8 @@
+DeviceScanActivity:
+  onListItemClick:
+    - store the device in the selected list
+	- change background color of selected list item
+  add a button at the bottom to start the recording of selected devices
+    - sticky button
+	- make the button clickable if at least one device is selected but no more than two devices
+	- onClick: start RecordingActivity by passing the device addresses (intent.putExtra)
