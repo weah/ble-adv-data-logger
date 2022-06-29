@@ -68,7 +68,6 @@ public class LeScanService extends Service {
     /**
      * Return a List of {@link ScanFilter} objects to filter by Service UUID.
      */
-    @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     private List<ScanFilter> buildScanFilters(String deviceAddress) {
         List<ScanFilter> scanFilters = new ArrayList<>();
 
