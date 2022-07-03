@@ -198,11 +198,25 @@ public class DeviceScanActivity extends ListActivity {
     private void startRecActivity() {
         Log.d(TAG, "startRecActivity()");
         // Check that one or two devices are selected
-
-        Toast.makeText(this, R.string.error_devices_selection, Toast.LENGTH_SHORT).show();
+        int nofSel = mLeDeviceListAdapter.getNofSelectedDevices();
+        if (nofSel < 1 || nofSel > 2) {
+            Toast.makeText(this, R.string.error_devices_selection, Toast.LENGTH_SHORT).show();
+            return;
+        }
 
         // Start activity
 
+
+        final Intent intent = new Intent(this, RecordingActivity.class);
+        ArrayList<String> devicesAddress = mLeDeviceListAdapter.getSelectedDeviceAddress();
+        intent.putExtra("devicesAddress", devicesAddress);
+//        intent.putExtra(RecordingActivity.EXTRAS_DEVICE_NAME, device.getName());
+//        intent.putExtra(RecordingActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
+        if (mScanning) {
+            mLeScanService.stopScan(mLeScanCallback);
+            mScanning = false;
+        }
+        startActivity(intent);
     }
 
     private void scanLeDevice(final boolean enable) {
@@ -267,6 +281,14 @@ public class DeviceScanActivity extends ListActivity {
 
         public int getNofSelectedDevices() {
             return mSelectedLeDevices.size();
+        }
+
+        public ArrayList<String> getSelectedDeviceAddress() {
+            ArrayList<String> addr = new ArrayList<>();
+            for(int i=0; i<mSelectedLeDevices.size(); i++) {
+                addr.add(mSelectedLeDevices.get(i).getAddress());
+            }
+            return addr;
         }
 
         public BluetoothDevice getDevice(int position) {

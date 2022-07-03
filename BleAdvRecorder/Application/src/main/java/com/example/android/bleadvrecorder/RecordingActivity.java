@@ -49,6 +49,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
@@ -225,8 +226,12 @@ public class RecordingActivity extends FragmentActivity {
         mHandler = new Handler();
 
         final Intent intent = getIntent();
-        mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
-        mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
+        ArrayList<String> devicesAddress =
+                (ArrayList<String>) intent.getSerializableExtra("devicesAddress");
+        mDeviceAddress = devicesAddress.get(0);
+
+//        mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
+//        mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
 
         // Sets up UI references.
         ((TextView) findViewById(R.id.rec_device_address)).setText(mDeviceAddress);
