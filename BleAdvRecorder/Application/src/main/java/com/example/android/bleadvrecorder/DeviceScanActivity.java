@@ -34,6 +34,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AbsListView;
 import android.widget.BaseAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -120,6 +121,9 @@ public class DeviceScanActivity extends ListActivity {
             case R.id.menu_stop:
                 scanLeDevice(false);
                 break;
+            case R.id.menu_record:
+                startRecActivity();
+                break;
         }
         return true;
     }
@@ -163,18 +167,42 @@ public class DeviceScanActivity extends ListActivity {
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         Log.d(TAG, "onListItemClick() id = " + String.valueOf(id));
+        l.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
+        //l.setItemsCanFocus(false);
+        //l.setSelector(R.color.design_default_color_primary_dark);
 
-        final BluetoothDevice device = mLeDeviceListAdapter.getDevice(position);
-        if (device == null) return;
-
-        final Intent intent = new Intent(this, RecordingActivity.class);
-        intent.putExtra(RecordingActivity.EXTRAS_DEVICE_NAME, device.getName());
-        intent.putExtra(RecordingActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
-        if (mScanning) {
-            mLeScanService.stopScan(mLeScanCallback);
-            mScanning = false;
+        if (l.isItemChecked(position)) {
+            v.setSelected(false);
+            mLeDeviceListAdapter.selectedDevice(position, false);
+        } else {
+            //l.setItemChecked(position, true);
+            v.setSelected(true);
+            mLeDeviceListAdapter.selectedDevice(position, true);
         }
-        startActivity(intent);
+        Log.d(TAG, "onListItemClick() # of selected devices = "
+                + String.valueOf(mLeDeviceListAdapter.getNofSelectedDevices()));
+
+//        final BluetoothDevice device = mLeDeviceListAdapter.getDevice(position);
+//        if (device == null) return;
+//
+//        final Intent intent = new Intent(this, RecordingActivity.class);
+//        intent.putExtra(RecordingActivity.EXTRAS_DEVICE_NAME, device.getName());
+//        intent.putExtra(RecordingActivity.EXTRAS_DEVICE_ADDRESS, device.getAddress());
+//        if (mScanning) {
+//            mLeScanService.stopScan(mLeScanCallback);
+//            mScanning = false;
+//        }
+//        startActivity(intent);
+    }
+
+    private void startRecActivity() {
+        Log.d(TAG, "startRecActivity()");
+        // Check that one or two devices are selected
+
+        Toast.makeText(this, R.string.error_devices_selection, Toast.LENGTH_SHORT).show();
+
+        // Start activity
+
     }
 
     private void scanLeDevice(final boolean enable) {
@@ -213,6 +241,7 @@ public class DeviceScanActivity extends ListActivity {
         public LeDeviceListAdapter() {
             super();
             mLeDevices = new ArrayList<BluetoothDevice>();
+            mSelectedLeDevices = new ArrayList<BluetoothDevice>();
             mLeDeviceRssi = new ArrayList<String>();
             mInflator = DeviceScanActivity.this.getLayoutInflater();
         }
@@ -222,6 +251,22 @@ public class DeviceScanActivity extends ListActivity {
                 mLeDevices.add(device);
                 mLeDeviceRssi.add(rssi);
             }
+        }
+
+        public void selectedDevice(int position, boolean select) {
+            if (select) {
+                if (!mSelectedLeDevices.contains(mLeDevices.get(position))) {
+                    mSelectedLeDevices.add(mLeDevices.get(position));
+                }
+            } else {
+                if (mSelectedLeDevices.contains(mLeDevices.get(position))) {
+                    mSelectedLeDevices.remove(mLeDevices.get(position));
+                }
+            }
+        }
+
+        public int getNofSelectedDevices() {
+            return mSelectedLeDevices.size();
         }
 
         public BluetoothDevice getDevice(int position) {
@@ -239,6 +284,7 @@ public class DeviceScanActivity extends ListActivity {
 
         public void clear() {
             mLeDevices.clear();
+            mSelectedLeDevices.clear();
         }
 
         @Override
