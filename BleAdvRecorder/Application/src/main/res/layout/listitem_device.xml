@@ -22,11 +22,11 @@
     android:layout_height="wrap_content"
     android:orientation="vertical">
 
-        <CheckedTextView
-        android:id="@+id/device_name"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="24sp" />
+    <CheckedTextView
+    android:id="@+id/device_name"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:textSize="24sp" />
 
     <CheckedTextView
         android:id="@+id/device_address"

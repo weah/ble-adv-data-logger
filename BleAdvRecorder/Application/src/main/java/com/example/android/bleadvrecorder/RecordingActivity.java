@@ -18,6 +18,7 @@ package com.example.android.bleadvrecorder;
 
 import android.app.Activity;
 import android.app.AlertDialog;
+import android.app.ListActivity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.ScanCallback;
@@ -61,7 +62,7 @@ import java.util.Locale;
  * communicates with {@code BluetoothLeService}, which in turn interacts with the
  * Bluetooth LE API.
  */
-public class RecordingActivity extends FragmentActivity {
+public class RecordingActivity extends ListActivity {
     private final static String TAG = RecordingActivity.class.getSimpleName();
 
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
@@ -81,6 +82,7 @@ public class RecordingActivity extends FragmentActivity {
     private ScanCallback mFilteredScanCallback;
     private long mTimeOfLastAdvReceived;
     private long mNofReceivedAdv;
+    private ScanResultAdapter mScanResultAdapter;
 
 //    private ExpandableListView mGattServicesList;
 //    private BluetoothLeService mBluetoothLeService;
@@ -267,11 +269,9 @@ public class RecordingActivity extends FragmentActivity {
     @Override
     protected void onResume() {
         super.onResume();
-//        registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
-//        if (mBluetoothLeService != null) {
-//            final boolean result = mBluetoothLeService.connect(mDeviceAddress);
-//            Log.d(TAG, "Connect request result=" + result);
-//        }
+        // Initializes list view adapter.
+        mScanResultAdapter = new ScanResultAdapter(getApplicationContext(), getLayoutInflater());
+        setListAdapter(mScanResultAdapter);
     }
 
     @Override
@@ -284,7 +284,6 @@ public class RecordingActivity extends FragmentActivity {
     protected void onDestroy() {
         super.onDestroy();
         closeFile();
-//        unbindService(mServiceConnection);
 //        mBluetoothLeService = null;
     }
 
@@ -399,7 +398,7 @@ public class RecordingActivity extends FragmentActivity {
     private class SampleScanCallback extends ScanCallback {
 
         // Convert a byte array into a hex-string
-         private String toHexadecimal(byte[] digest){
+         private String toHexadecimal(byte[] digest) {
              String hash = "";
              for(byte aux : digest) {
                  int b = aux & 0xff;
@@ -436,18 +435,22 @@ public class RecordingActivity extends FragmentActivity {
             String str = device.getAddress() + ";" + String.valueOf(time) +
                     ";" + advDataHexStr + ";" + rssiStr + "\n";
             writeToFile(str);
-            ((TextView) findViewById(R.id.dev_rssi)).setText(rssiStr + "dBm");
-            long advInterval = time - mTimeOfLastAdvReceived;
-            if (advInterval < 0) {
-                ((TextView) findViewById(R.id.adv_interval)).setText("-");
-            } else {
-                ((TextView) findViewById(R.id.adv_interval)).setText(String.valueOf(advInterval) + "ms");
-            }
-            mTimeOfLastAdvReceived = time;
 
-            mNofReceivedAdv++;
-            ((TextView) findViewById(R.id.nof_rx_adv)).setText(String.valueOf(mNofReceivedAdv));
+            // Update UI
+//            ((TextView) findViewById(R.id.dev_rssi)).setText(rssiStr + "dBm");
+//            long advInterval = time - mTimeOfLastAdvReceived;
+//            if (advInterval < 0) {
+//                ((TextView) findViewById(R.id.adv_interval)).setText("-");
+//            } else {
+//                ((TextView) findViewById(R.id.adv_interval)).setText(String.valueOf(advInterval) + "ms");
+//            }
+//            mTimeOfLastAdvReceived = time;
+//
+//            mNofReceivedAdv++;
+//            ((TextView) findViewById(R.id.nof_rx_adv)).setText(String.valueOf(mNofReceivedAdv));
 
+            mScanResultAdapter.add(result);
+            mScanResultAdapter.notifyDataSetChanged();
             //mAdapter.add(result);
             //mAdapter.notifyDataSetChanged();
         }
