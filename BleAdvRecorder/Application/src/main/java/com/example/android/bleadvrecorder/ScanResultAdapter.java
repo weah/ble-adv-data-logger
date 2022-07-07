@@ -66,11 +66,11 @@ public class ScanResultAdapter extends BaseAdapter {
 
         // Reuse an old view if we can, otherwise create a new one.
         if (view == null) {
-            view = mInflater.inflate(R.layout.adv_recording, null);
+            view = mInflater.inflate(R.layout.recitem, null);
         }
 
         TextView deviceNameView = (TextView) view.findViewById(R.id.device_name);
-        TextView deviceAddressView = (TextView) view.findViewById(R.id.device_address);
+        TextView deviceAddressView = (TextView) view.findViewById(R.id.rec_device_address);
         TextView nofRxAdvView = (TextView) view.findViewById(R.id.nof_rx_adv);
         TextView advIntervalView = (TextView) view.findViewById(R.id.adv_interval);
         TextView devRssiView = (TextView) view.findViewById(R.id.dev_rssi);
@@ -82,7 +82,7 @@ public class ScanResultAdapter extends BaseAdapter {
         if (name == null) {
             name = mContext.getResources().getString(R.string.unknown_device);
         }
-        deviceNameView.setText(name);
+        //deviceNameView.setText(name);
         deviceAddressView.setText(scanResult.getDevice().getAddress());
         //lastSeenView.setText(getTimeSinceString(mContext, scanResult.getTimestampNanos()));
 

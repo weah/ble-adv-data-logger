@@ -236,7 +236,7 @@ public class RecordingActivity extends ListActivity {
 //        mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
 
         // Sets up UI references.
-        ((TextView) findViewById(R.id.rec_device_address)).setText(mDeviceAddress);
+        //((TextView) findViewById(R.id.rec_device_address)).setText(mDeviceAddress);
 //        mGattServicesList = (ExpandableListView) findViewById(R.id.gatt_services_list);
 //        mGattServicesList.setOnChildClickListener(servicesListClickListner);
 //        mConnectionState = (TextView) findViewById(R.id.connection_state);
