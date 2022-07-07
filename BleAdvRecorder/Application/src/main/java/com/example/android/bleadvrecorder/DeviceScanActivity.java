@@ -17,7 +17,6 @@
 package com.example.android.bleadvrecorder;
 
 import android.app.Activity;
-import android.app.FragmentTransaction;
 import android.app.ListActivity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -42,14 +41,12 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.util.Log;
 
-import androidx.fragment.app.FragmentActivity;
-
 import java.util.ArrayList;
 
 /**
  * Activity for scanning and displaying available Bluetooth LE devices.
  */
-public class DeviceScanActivity extends FragmentActivity {
+public class DeviceScanActivity extends ListActivity {
     private static final String TAG = DeviceScanActivity.class.getSimpleName();
 
 
@@ -84,7 +81,6 @@ public class DeviceScanActivity extends FragmentActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.device_scan);
         getActionBar().setTitle(R.string.title_devices);
         mHandler = new Handler();
 
@@ -94,8 +90,6 @@ public class DeviceScanActivity extends FragmentActivity {
             Toast.makeText(this, R.string.ble_not_supported, Toast.LENGTH_SHORT).show();
             finish();
         }
-
-        //setupFragments();
 
         Intent leScanServiceIntent = new Intent(this, LeScanService.class);
         getApplicationContext().bindService(leScanServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
@@ -200,16 +194,6 @@ public class DeviceScanActivity extends FragmentActivity {
 //        }
 //        startActivity(intent);
     }
-
-//
-//    private void setupFragments() {
-//        FragmentTransaction transaction = getFragmentManager().beginTransaction();
-//
-//        StartStopRecFragment startStopRecFragment = new StartStopRecFragment();
-//        transaction.replace(R.id.startstoprec_fragment_container, startStopRecFragment.getClass());
-//
-//        transaction.commit();
-//    }
 
     private void startRecActivity() {
         Log.d(TAG, "startRecActivity()");
