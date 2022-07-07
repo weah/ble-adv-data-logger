@@ -451,8 +451,6 @@ public class RecordingActivity extends ListActivity {
 
             mScanResultAdapter.add(result);
             mScanResultAdapter.notifyDataSetChanged();
-            //mAdapter.add(result);
-            //mAdapter.notifyDataSetChanged();
         }
 
         @Override

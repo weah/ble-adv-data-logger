@@ -18,7 +18,6 @@ package com.example.android.bleadvrecorder;
 
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
-import android.os.SystemClock;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,7 +25,6 @@ import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import java.util.ArrayList;
-import java.util.concurrent.TimeUnit;
 
 /**
  * Holds and displays {@link ScanResult}s, used by {@link RecordingActivity}.
@@ -34,16 +32,18 @@ import java.util.concurrent.TimeUnit;
 public class ScanResultAdapter extends BaseAdapter {
 
     private ArrayList<ScanResult> mArrayList;
-
     private Context mContext;
-
     private LayoutInflater mInflater;
+    private ArrayList<Long> mNofReceivedAdv;
+    private ArrayList<Long> mTimeOfLastAdvReceived;
 
     ScanResultAdapter(Context context, LayoutInflater inflater) {
         super();
         mContext = context;
         mInflater = inflater;
         mArrayList = new ArrayList<>();
+        mNofReceivedAdv = new ArrayList<>();
+        mTimeOfLastAdvReceived = new ArrayList<>();
     }
 
     @Override
@@ -66,14 +66,32 @@ public class ScanResultAdapter extends BaseAdapter {
 
         // Reuse an old view if we can, otherwise create a new one.
         if (view == null) {
-            view = mInflater.inflate(R.layout.recitem, null);
+            view = mInflater.inflate(R.layout.listitem_recdevice, null);
         }
 
-        TextView deviceNameView = (TextView) view.findViewById(R.id.device_name);
-        TextView deviceAddressView = (TextView) view.findViewById(R.id.rec_device_address);
-        TextView nofRxAdvView = (TextView) view.findViewById(R.id.nof_rx_adv);
-        TextView advIntervalView = (TextView) view.findViewById(R.id.adv_interval);
-        TextView devRssiView = (TextView) view.findViewById(R.id.dev_rssi);
+        long time = System.currentTimeMillis();
+
+        if(position >= mNofReceivedAdv.size() || position < 0){
+            //index does not exists
+            mNofReceivedAdv.add(position, 0L);
+        }
+        long tmp = mNofReceivedAdv.get(position);
+        tmp++;
+        mNofReceivedAdv.set(position, tmp);
+
+        if(position >= mTimeOfLastAdvReceived.size() || position < 0){
+            //index does not exists
+            mTimeOfLastAdvReceived.add(position, 0L);
+        }
+        long advInterval = time - mTimeOfLastAdvReceived.get(position);
+        mTimeOfLastAdvReceived.set(position, time);
+
+
+        TextView deviceNameView = view.findViewById(R.id.device_name);
+        TextView deviceAddressView = view.findViewById(R.id.rec_device_address);
+        TextView nofRxAdvView = view.findViewById(R.id.nof_rx_adv);
+        TextView advIntervalView = view.findViewById(R.id.adv_interval);
+        TextView devRssiView = view.findViewById(R.id.dev_rssi);
         //TextView lastSeenView = (TextView) view.findViewById(R.id.last_seen);
 
         ScanResult scanResult = mArrayList.get(position);
@@ -84,6 +102,13 @@ public class ScanResultAdapter extends BaseAdapter {
         }
         //deviceNameView.setText(name);
         deviceAddressView.setText(scanResult.getDevice().getAddress());
+        nofRxAdvView.setText(String.valueOf(mNofReceivedAdv.get(position)));
+        devRssiView.setText(String.valueOf(scanResult.getRssi()) + "dBm");
+        if (advInterval < 0) {
+            advIntervalView.setText("-");
+        } else {
+            advIntervalView.setText(advInterval + "ms");
+        }
         //lastSeenView.setText(getTimeSinceString(mContext, scanResult.getTimestampNanos()));
 
         return view;
