@@ -13,59 +13,83 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.manuelpeinado.multichoiceadapter.CheckableRelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:baselineAligned="false"
+    android:minHeight="64dp"
+    android:orientation="horizontal"
+    android:paddingLeft="6dp"
+    android:paddingRight="6dp" >
 
     <LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical">
-
-    <CheckedTextView
-    android:id="@+id/device_name"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:textSize="24sp" />
-
-    <CheckedTextView
-        android:id="@+id/device_address"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="12sp" />
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:layout_toLeftOf="@android:id/checkbox"
+        android:orientation="vertical" >
 
-    <CheckedTextView
-        android:id="@+id/device_rssi"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textSize="12sp" />
-    <!--
-        <LinearLayout
+        <TextView
+            android:id="@+id/device_name"
             android:layout_width="match_parent"
-            android:layout_height="0dip"
-            android:layout_weight="1"
-            android:gravity="center|bottom"
-            android:orientation="vertical">
+            android:layout_height="wrap_content"
+            android:textSize="24sp"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
-            <Button
-                android:id="@+id/button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_horizontal|center"
-                android:text="@string/start_recording" />
-        </LinearLayout>
-    -->
+        <TextView
+            android:id="@+id/device_address"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
+
+
+        <TextView
+            android:id="@+id/device_rssi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceSmall" />
     </LinearLayout>
     <!--
-        <FrameLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent">
+        <CheckBox
+            android:id="@android:id/checkbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="true"
+            android:layout_centerVertical="true"
+            android:focusable="false"
+            android:minWidth="48dp"
+            android:minHeight="48dp" />
+    -->
+</com.manuelpeinado.multichoiceadapter.CheckableRelativeLayout>
+    <!--
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-            <Button
-                android:id="@+id/button"
+        <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+            <CheckedTextView
+                android:id="@+id/device_name"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Hello" />
-        </FrameLayout>
-    -->
-    </RelativeLayout>
+                android:textSize="24sp" />
+
+            <CheckedTextView
+            android:id="@+id/device_address"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp" />
+
+        <CheckedTextView
+            android:id="@+id/device_rssi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="12sp" />
+
+        </LinearLayout>
+    </RelativeLayout>-->
