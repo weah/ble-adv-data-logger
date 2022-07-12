@@ -36,6 +36,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.BaseAdapter;
+import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -325,7 +327,7 @@ public class DeviceScanActivity extends ListActivity {
         }
 
         @Override
-        public View getView(int i, View view, ViewGroup viewGroup) {
+        public View getView(final int i, View view, ViewGroup viewGroup) {
             ViewHolder viewHolder;
             // General ListView optimization code.
             if (view == null) {
@@ -335,6 +337,19 @@ public class DeviceScanActivity extends ListActivity {
                 viewHolder.deviceName = (TextView) view.findViewById(R.id.device_name);
                 viewHolder.deviceRssi = (TextView) view.findViewById(R.id.device_rssi);
                 view.setTag(viewHolder);
+                CheckBox cb = view.findViewById(R.id.cbSelected);
+                final int index = i;
+                cb.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                        final BluetoothDevice dev = mLeDevices.get(i);
+                        if(b && !mSelectedLeDevices.contains(dev)){
+                            mSelectedLeDevices.add(dev);
+                        } else if(!b && mSelectedLeDevices.contains(dev)) {
+                            mSelectedLeDevices.remove(dev);
+                        }
+                    }
+                });
             } else {
                 viewHolder = (ViewHolder) view.getTag();
             }
