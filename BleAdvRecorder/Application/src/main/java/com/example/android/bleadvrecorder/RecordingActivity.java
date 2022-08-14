@@ -19,10 +19,8 @@ package com.example.android.bleadvrecorder;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ListActivity;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.le.ScanCallback;
-import android.bluetooth.le.ScanRecord;
 import android.bluetooth.le.ScanResult;
 import android.content.ComponentName;
 import android.content.Context;
@@ -30,14 +28,10 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
-
-import androidx.annotation.RequiresApi;
-import androidx.fragment.app.FragmentActivity;
 
 import android.text.format.DateFormat;
 import android.util.Log;
@@ -49,7 +43,6 @@ import android.widget.TextView;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -71,7 +64,7 @@ public class RecordingActivity extends ListActivity {
     private TextView mConnectionState;
     private TextView mDataField;
     private String mDeviceName;
-    private String mDeviceAddress;
+    private ArrayList<String> mDevicesAddress;
     private String mSessionName;
     private String mRecFileName;
     private Uri mRecFileNameUri;
@@ -228,10 +221,12 @@ public class RecordingActivity extends ListActivity {
         mHandler = new Handler();
 
         final Intent intent = getIntent();
-        ArrayList<String> devicesAddress =
+//        ArrayList<String> devicesAddress =
+//                (ArrayList<String>) intent.getSerializableExtra("devicesAddress");
+//        // TODO: for now only one device is used
+//        mDeviceAddress = devicesAddress.get(0);
+        mDevicesAddress =
                 (ArrayList<String>) intent.getSerializableExtra("devicesAddress");
-        mDeviceAddress = devicesAddress.get(0);
-
 //        mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
 //        mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
 
@@ -369,6 +364,7 @@ public class RecordingActivity extends ListActivity {
                 if (mFilteredScanCallback == null) {
 
                     // Stops scanning after a pre-defined scan period.
+                    // TODO: scan for an infinite time, waiting for the user to stop it
                     mHandler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
@@ -381,7 +377,7 @@ public class RecordingActivity extends ListActivity {
                     mNofReceivedAdv = 0;
                     mTimeOfLastAdvReceived = 0;
                     mFilteredScanCallback = new SampleScanCallback();
-                    mLeScanService.startFilteredScan(mDeviceAddress, mFilteredScanCallback);
+                    mLeScanService.startFilteredScan(mDevicesAddress, mFilteredScanCallback);
                 }
             }
         } else {

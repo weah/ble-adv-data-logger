@@ -66,17 +66,16 @@ public class LeScanService extends Service {
     }
 
     /**
-     * Return a List of {@link ScanFilter} objects to filter by Service UUID.
+     * Return a List of {@link ScanFilter} objects to filter by address.
      */
-    private List<ScanFilter> buildScanFilters(String deviceAddress) {
+    private List<ScanFilter> buildScanFilters(ArrayList<String> devicesAddress) {
         List<ScanFilter> scanFilters = new ArrayList<>();
 
-        ScanFilter.Builder builder = new ScanFilter.Builder();
-        // Comment out the below line to see all BLE devices around you
-        //builder.setServiceUuid(Constants.Service_UUID);
-        builder.setDeviceAddress(deviceAddress);
-        scanFilters.add(builder.build());
-
+        for(int i=0; i<devicesAddress.size(); i++) {
+            ScanFilter.Builder builder = new ScanFilter.Builder();
+            builder.setDeviceAddress(devicesAddress.get(i));
+            scanFilters.add(builder.build());
+        }
         return scanFilters;
     }
 
@@ -89,9 +88,9 @@ public class LeScanService extends Service {
         return builder.build();
     }
 
-    public void startFilteredScan(String deviceAddress, ScanCallback scanCallback) {
+    public void startFilteredScan(ArrayList<String> devicesAddress, ScanCallback scanCallback) {
         isScanning = true;
-        mBluetoothLeScanner.startScan(buildScanFilters(deviceAddress), buildScanSettings(), scanCallback);
+        mBluetoothLeScanner.startScan(buildScanFilters(devicesAddress), buildScanSettings(), scanCallback);
     }
 
     public void stopFilteredScan(ScanCallback scanCallback) {

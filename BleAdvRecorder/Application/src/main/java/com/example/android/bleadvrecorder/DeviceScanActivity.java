@@ -168,6 +168,7 @@ public class DeviceScanActivity extends ListActivity {
 
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
+        // TODO: method not used anymore -> to be removed!
         Log.d(TAG, "onListItemClick() id = " + String.valueOf(id));
         l.setChoiceMode(AbsListView.CHOICE_MODE_MULTIPLE);
         //l.setItemsCanFocus(false);
