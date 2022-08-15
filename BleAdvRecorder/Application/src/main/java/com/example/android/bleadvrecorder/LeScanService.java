@@ -38,10 +38,6 @@ public class LeScanService extends Service {
 
     @Override
     public boolean onUnbind(Intent intent) {
-        // After using a given device, you should make sure that BluetoothGatt.close() is called
-        // such that resources are cleaned up properly.  In this particular example, close() is
-        // invoked when the UI is disconnected from the Service.
-        //close();
         return super.onUnbind(intent);
     }
 
@@ -88,6 +84,9 @@ public class LeScanService extends Service {
         return builder.build();
     }
 
+    /**
+     * Start scanning for specific devices (filtered by address)
+     */
     public void startFilteredScan(ArrayList<String> devicesAddress, ScanCallback scanCallback) {
         isScanning = true;
         mBluetoothLeScanner.startScan(buildScanFilters(devicesAddress), buildScanSettings(), scanCallback);
@@ -98,6 +97,9 @@ public class LeScanService extends Service {
         isScanning = false;
     }
 
+    /**
+     * Scan for all devices, w/o filters
+     */
     public void startScan(BluetoothAdapter.LeScanCallback scanCallback) {
         isScanning = true;
         mBluetoothAdapter.startLeScan(scanCallback);
