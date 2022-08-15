@@ -87,7 +87,7 @@ public class ScanResultAdapter extends BaseAdapter {
         mTimeOfLastAdvReceived.set(position, time);
 
 
-        TextView deviceNameView = view.findViewById(R.id.device_name);
+        TextView deviceNameView = view.findViewById(R.id.rec_device_name);
         TextView deviceAddressView = view.findViewById(R.id.rec_device_address);
         TextView nofRxAdvView = view.findViewById(R.id.nof_rx_adv);
         TextView advIntervalView = view.findViewById(R.id.adv_interval);
@@ -97,10 +97,10 @@ public class ScanResultAdapter extends BaseAdapter {
         ScanResult scanResult = mArrayList.get(position);
 
         String name = scanResult.getDevice().getName();
-        if (name == null) {
+        if (name == null || name.length() <= 0) {
             name = mContext.getResources().getString(R.string.unknown_device);
         }
-        //deviceNameView.setText(name);
+        deviceNameView.setText(name);
         deviceAddressView.setText(scanResult.getDevice().getAddress());
         nofRxAdvView.setText(String.valueOf(mNofReceivedAdv.get(position)));
         devRssiView.setText(String.valueOf(scanResult.getRssi()) + "dBm");

@@ -50,9 +50,8 @@ import java.util.Locale;
 
 /**
  * For given BLE devices, this Activity provides the user interface to record advertise and
- * display data statistics,
- * The Activity
- * communicates with {@code BluetoothLeService}, which in turn interacts with the
+ * display data statistics.
+ * The Activity communicates with {@code BluetoothLeService}, which in turn interacts with the
  * Bluetooth LE API.
  */
 public class RecordingActivity extends ListActivity {
@@ -246,6 +245,10 @@ public class RecordingActivity extends ListActivity {
         Intent leScanServiceIntent = new Intent(this, LeScanService.class);
         getApplicationContext().bindService(leScanServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
 
+        // Initializes list view adapter.
+        mScanResultAdapter = new ScanResultAdapter(getApplicationContext(), getLayoutInflater());
+        setListAdapter(mScanResultAdapter);
+
         // Pop up asking the user to enter a session name
         final EditText sessionName = new EditText(this);
         sessionName.setHint("IndoorMeetingRoomChur");
@@ -264,9 +267,7 @@ public class RecordingActivity extends ListActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Initializes list view adapter.
-        mScanResultAdapter = new ScanResultAdapter(getApplicationContext(), getLayoutInflater());
-        setListAdapter(mScanResultAdapter);
+
     }
 
     @Override
@@ -320,7 +321,7 @@ public class RecordingActivity extends ListActivity {
                 }
 
                 // Start LE scan
-                scanLeDevice(true);
+                scanAndRecord(true);
             }
         }
     }
@@ -358,7 +359,7 @@ public class RecordingActivity extends ListActivity {
         }
     }
 
-    private void scanLeDevice(final boolean enable) {
+    private void scanAndRecord(final boolean enable) {
         if (enable) {
             if (mLeScanService != null) {
                 if (mFilteredScanCallback == null) {
@@ -373,7 +374,7 @@ public class RecordingActivity extends ListActivity {
                             invalidateOptionsMenu();
                         }
                     }, 10000);
-                    Log.d(TAG, "scanLeDevice() -> startScan");
+                    Log.d(TAG, "scanAndRecord() -> startScan");
                     mNofReceivedAdv = 0;
                     mTimeOfLastAdvReceived = 0;
                     mFilteredScanCallback = new SampleScanCallback();
@@ -382,7 +383,7 @@ public class RecordingActivity extends ListActivity {
             }
         } else {
             if (mLeScanService != null) {
-                Log.d(TAG, "scanLeDevice() -> stopScan");
+                Log.d(TAG, "scanAndRecord() -> stopScan");
                 mLeScanService.stopFilteredScan(mFilteredScanCallback);
                 mFilteredScanCallback = null;
             }
@@ -461,14 +462,15 @@ public class RecordingActivity extends ListActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
+        menu.findItem(R.id.menu_scan).setVisible(false); // Do not display SCAN during this activity
         if ((mLeScanService != null) && mLeScanService.isScanning()) {
             menu.findItem(R.id.menu_stop).setVisible(true);
-            menu.findItem(R.id.menu_scan).setVisible(false);
+            menu.findItem(R.id.menu_record).setVisible(false);
             menu.findItem(R.id.menu_refresh).setActionView(
                     R.layout.actionbar_indeterminate_progress);
         } else {
             menu.findItem(R.id.menu_stop).setVisible(false);
-            menu.findItem(R.id.menu_scan).setVisible(true);
+            menu.findItem(R.id.menu_record).setVisible(true);
             menu.findItem(R.id.menu_refresh).setActionView(null);
         }
         return true;
@@ -477,12 +479,12 @@ public class RecordingActivity extends ListActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.menu_scan:
+            case R.id.menu_record:
                 //mLeDeviceListAdapter.clear();
-                scanLeDevice(true);
+                scanAndRecord(true);
                 break;
             case R.id.menu_stop:
-                scanLeDevice(false);
+                scanAndRecord(false);
                 break;
             case android.R.id.home:
                 onBackPressed();
