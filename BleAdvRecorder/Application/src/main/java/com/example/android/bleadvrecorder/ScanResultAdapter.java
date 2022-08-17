@@ -18,13 +18,23 @@ package com.example.android.bleadvrecorder;
 
 import android.bluetooth.le.ScanResult;
 import android.content.Context;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
+import com.anychart.AnyChart;
+import com.anychart.AnyChartView;
+import com.anychart.chart.common.dataentry.DataEntry;
+import com.anychart.chart.common.dataentry.ValueDataEntry;
+import com.anychart.charts.Cartesian;
+import com.anychart.core.cartesian.series.Line;
+
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 
 /**
  * Holds and displays {@link ScanResult}s, used by {@link RecordingActivity}.
@@ -67,6 +77,23 @@ public class ScanResultAdapter extends BaseAdapter {
         // Reuse an old view if we can, otherwise create a new one.
         if (view == null) {
             view = mInflater.inflate(R.layout.listitem_recdevice, null);
+
+        AnyChartView anyChartView = view.findViewById(R.id.any_chart_view);
+
+        // create Line chart
+        Cartesian cartesian = AnyChart.line();
+
+        // create data List
+        List<DataEntry> seriesData = new ArrayList<>();
+        seriesData.add(new ValueDataEntry("A", 5));
+        seriesData.add(new ValueDataEntry("B", 4));
+        seriesData.add(new ValueDataEntry("C", 3));
+        seriesData.add(new ValueDataEntry("D", 4));
+
+        // create Line series
+        cartesian.line(seriesData);
+
+        anyChartView.setChart(cartesian);
         }
 
         long time = System.currentTimeMillis();
@@ -110,6 +137,47 @@ public class ScanResultAdapter extends BaseAdapter {
             advIntervalView.setText(advInterval + "ms");
         }
         //lastSeenView.setText(getTimeSinceString(mContext, scanResult.getTimestampNanos()));
+
+
+
+//
+//        AnyChartView anyChartView = view.findViewById(R.id.any_chart_view);
+//
+//        // create Line chart
+//        Cartesian cartesian = AnyChart.line();
+//
+//        // create data List
+//        List<DataEntry> seriesData = new ArrayList<>();
+//        seriesData.add(new ValueDataEntry("A", 5));
+//        seriesData.add(new ValueDataEntry("B", 4));
+//        seriesData.add(new ValueDataEntry("C", 3));
+//        seriesData.add(new ValueDataEntry("D", 4));
+//
+//        // create Line series
+//        final Line series1 = cartesian.line(seriesData);
+//
+//        anyChartView.setChart(cartesian);
+
+//        // simulate real-time update
+//        final int delayMillis = 500;
+//        final Handler handler = new Handler();
+//        final Runnable runnable = new Runnable() {
+//            public void run() {
+//                // create new data List
+//                List<DataEntry> data = new ArrayList<>();
+//                data.add(new ValueDataEntry("A", new Random().nextDouble() * 10));
+//                data.add(new ValueDataEntry("B", new Random().nextDouble() * 10));
+//                data.add(new ValueDataEntry("C", new Random().nextDouble() * 10));
+//                data.add(new ValueDataEntry("D", new Random().nextDouble() * 10));
+//                // apply new data to the series
+//                series1.data(data);
+//
+//                handler.postDelayed(this, delayMillis);
+//            }
+//        };
+//        handler.postDelayed(runnable, delayMillis);
+
+
 
         return view;
     }
