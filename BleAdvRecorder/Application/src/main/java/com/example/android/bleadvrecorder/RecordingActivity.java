@@ -39,6 +39,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -100,33 +101,19 @@ public class RecordingActivity extends ListActivity {
         setContentView(R.layout.adv_recording);
         mHandler = new Handler();
 
+        // Get the devices address as provided by DeviceScanActivity
         final Intent intent = getIntent();
-//        ArrayList<String> devicesAddress =
-//                (ArrayList<String>) intent.getSerializableExtra("devicesAddress");
-//        // TODO: for now only one device is used
-//        mDeviceAddress = devicesAddress.get(0);
         mDevicesAddress =
                 (ArrayList<String>) intent.getSerializableExtra("devicesAddress");
-//        mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
-//        mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
 
-        // Sets up UI references.
-        //((TextView) findViewById(R.id.rec_device_address)).setText(mDeviceAddress);
-//        mGattServicesList = (ExpandableListView) findViewById(R.id.gatt_services_list);
-//        mGattServicesList.setOnChildClickListener(servicesListClickListner);
-//        mConnectionState = (TextView) findViewById(R.id.connection_state);
-//        mDataField = (TextView) findViewById(R.id.data_value);
-
-        getActionBar().setTitle("Record Devices ADV");
+        getActionBar().setTitle("Recording ADV");
         getActionBar().setDisplayHomeAsUpEnabled(true);
-//        Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
-//        bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
 
         // Bind LE Scan Service
         Intent leScanServiceIntent = new Intent(this, LeScanService.class);
         getApplicationContext().bindService(leScanServiceIntent, mServiceConnection, Context.BIND_AUTO_CREATE);
 
-        // Initializes list view adapter.
+        // Initialize list view adapter
         mScanResultAdapter = new ScanResultAdapter(getApplicationContext(), getLayoutInflater());
         setListAdapter(mScanResultAdapter);
 
@@ -148,13 +135,11 @@ public class RecordingActivity extends ListActivity {
     @Override
     protected void onResume() {
         super.onResume();
-
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-//        unregisterReceiver(mGattUpdateReceiver);
     }
 
     @Override
@@ -192,7 +177,7 @@ public class RecordingActivity extends ListActivity {
                 // Perform operations on the document using its URI.
 
                 try {
-                    // Open file or editing
+                    // Open file for editing
                     mParcelFileDescriptor = getApplicationContext().getContentResolver().
                             openFileDescriptor(mRecFileNameUri, "w");
                     mFileOutputStream = new FileOutputStream(mParcelFileDescriptor.getFileDescriptor());
@@ -244,21 +229,10 @@ public class RecordingActivity extends ListActivity {
         if (enable) {
             if (mLeScanService != null) {
                 if (mFilteredScanCallback == null) {
-
-                    // Stops scanning after a pre-defined scan period.
-                    // TODO: scan for an infinite time, waiting for the user to stop it
-                    mHandler.postDelayed(new Runnable() {
-                        @Override
-                        public void run() {
-                            mLeScanService.stopFilteredScan(mFilteredScanCallback);
-                            mFilteredScanCallback = null;
-                            invalidateOptionsMenu();
-                        }
-                    }, 10000);
                     Log.d(TAG, "scanAndRecord() -> startScan");
                     mNofReceivedAdv = 0;
                     mTimeOfLastAdvReceived = 0;
-                    mFilteredScanCallback = new SampleScanCallback();
+                    mFilteredScanCallback = new CustomScanCallback();
                     mLeScanService.startFilteredScan(mDevicesAddress, mFilteredScanCallback);
                 }
             }
@@ -273,7 +247,7 @@ public class RecordingActivity extends ListActivity {
     }
 
      // ScanCallback for filtered scan
-    private class SampleScanCallback extends ScanCallback {
+    private class CustomScanCallback extends ScanCallback {
 
         // Convert a byte array into a hex-string
          private String toHexadecimal(byte[] digest) {
@@ -290,6 +264,8 @@ public class RecordingActivity extends ListActivity {
         public void onBatchScanResults(List<ScanResult> results) {
             super.onBatchScanResults(results);
             Log.d(TAG, "onBatchScanResults");
+
+            // This one seems to be never called
 
             for (ScanResult result : results) {
                 //mAdapter.add(result);
@@ -349,7 +325,6 @@ public class RecordingActivity extends ListActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.menu_record:
-                //mLeDeviceListAdapter.clear();
                 scanAndRecord(true);
                 break;
             case R.id.menu_stop:
